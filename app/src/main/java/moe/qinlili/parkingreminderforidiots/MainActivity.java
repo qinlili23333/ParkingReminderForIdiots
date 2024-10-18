@@ -2,30 +2,24 @@ package moe.qinlili.parkingreminderforidiots;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
+import android.net.*;
+import android.net.wifi.*;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
-import android.widget.Switch;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 
 public class MainActivity extends Activity {
+
+    String ssid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,13 +53,30 @@ public class MainActivity extends Activity {
             }
         });
         readConfig();
+        checkLocationPermission();
         refreshBatteryWhitelist();
+        refreshSSID(null);
+
     }
     @Override
     public void onResume()
     {
         super.onResume();
         refreshBatteryWhitelist();
+    }
+
+    private void checkLocationPermission(){
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "请允许位置权限！", Toast.LENGTH_SHORT).show();
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }else{
+            if(checkSelfPermission(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(this, "请允许后台位置！", Toast.LENGTH_SHORT).show();
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 1);
+            }
+        }
+
+
     }
 
     protected void readConfig(){
@@ -105,4 +116,18 @@ public class MainActivity extends Activity {
             battbtn.setText("已启用后台保活");
         }
     }
+
+    public void refreshSSID(View view){
+        WifiManager wifiMgr = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if(wifiMgr != null) {
+            ssid = wifiMgr.getConnectionInfo().getSSID();
+            ssid=ssid.substring(1,ssid.length()-1);
+            ((TextView) findViewById(R.id.current_ssid)).setText("当前SSID：" + ssid);
+        }
+    }
+
+    public void setSSID(View view){
+        ((EditText)findViewById(R.id.ssid)).setText(ssid);
+    }
+
 }

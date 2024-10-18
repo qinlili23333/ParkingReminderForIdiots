@@ -13,17 +13,24 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
         android:orientation="vertical">
-    <Switch
-        android:id="@+id/enable"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="启用"
-        android:layout_marginVertical="12dp"
-        tools:layout_editor_absoluteX="28dp"
-        tools:layout_editor_absoluteY="40dp" />
 
-    <TextView
+        <Switch
+            android:id="@+id/enable_msg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:text="启用通知" />
+
+        <Switch
+            android:id="@+id/enable_jump"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:text="启用一键跳转" />
+
+        <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="目的地网络" />
@@ -113,23 +120,30 @@
 
     </LinearLayout>
 
+    <Spinner
+        android:id="@+id/cool_cd"
+        android:layout_width="match_parent"
+        android:layout_marginVertical="6dp"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/apply"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="保存并应用" />
 
-    <Button
-        android:id="@+id/battery_opt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="启用后台保活" />
+        <Button
+            android:id="@+id/battery_opt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="requestBatteryWhitelist"
+            android:text="启用后台保活" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="开发：琴梨梨OvO\n版本：读取中..." />
+            android:text="开发：琴梨梨OvO" />
     </LinearLayout>
 </ScrollView>
 </LinearLayout>

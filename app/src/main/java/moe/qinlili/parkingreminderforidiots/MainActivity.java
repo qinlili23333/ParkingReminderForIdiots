@@ -5,16 +5,23 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -24,6 +31,33 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ((EditText)findViewById(R.id.pkgname)).addTextChangedListener(new TextWatcher() {
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            public void afterTextChanged(Editable s) {
+                String pkgname = s.toString();
+                if (!pkgname.isEmpty() && !pkgname.contains(".")) {
+                    ((TextView)MainActivity.this.findViewById(R.id.app_name)).setText("包名格式错误！");
+                }else{
+                    try {
+                        ApplicationInfo app = MainActivity.this.getPackageManager().getApplicationInfo(pkgname, 0);
+                        Drawable icon = MainActivity.this.getPackageManager().getApplicationIcon(app);
+                        String name = (String) MainActivity.this.getPackageManager().getApplicationLabel(app);
+                        ((TextView)MainActivity.this.findViewById(R.id.app_name)).setText("已安装："+name);
+                        ((ImageView)MainActivity.this.findViewById(R.id.app_icon)).setImageDrawable(icon);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        ((TextView)MainActivity.this.findViewById(R.id.app_name)).setText("应用不存在！");
+                    }
+                }
+            }
+        });
         readConfig();
         refreshBatteryWhitelist();
     }

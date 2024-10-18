@@ -30,6 +30,14 @@
             android:layout_marginVertical="4dp"
             android:text="启用一键跳转" />
 
+        <Switch
+            android:id="@+id/enable_assist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:enabled="false"
+            android:text="启用魔术手（还没做）" />
+
         <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -92,7 +100,8 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/app_icon"
+            android:padding="4dp"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_weight="0"
@@ -101,9 +110,10 @@
         <TextView
             android:id="@+id/app_name"
             android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center_vertical"
-            android:layout_height="wrap_content"
+            android:maxLines="1"
             android:text="检测安装状态中..." />
 
         <Button

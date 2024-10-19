@@ -22,12 +22,17 @@ import android.widget.*;
 
 public class MainActivity extends Activity {
 
+    static boolean isRunning = false;
     String ssid;
+
+    SharedPreferences pref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        isRunning = true;
         setContentView(R.layout.activity_main);
+        pref = getSharedPreferences("config", 0);
         ((EditText)findViewById(R.id.pkgname)).addTextChangedListener(new TextWatcher() {
 
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -65,10 +70,15 @@ public class MainActivity extends Activity {
     public void onResume()
     {
         super.onResume();
+        isRunning = true;
         refreshBatteryWhitelist();
         checkLocationPermission();
     }
-
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isRunning = false;
+    }
 
     private void checkLocationPermission(){
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -84,11 +94,18 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "请允许通知权限！", Toast.LENGTH_SHORT).show();
             requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 2);
         }
+        if (!Settings.canDrawOverlays(this)&&pref.getBoolean("enable_jump",false)) {
+            Toast.makeText(this, "自动跳转需要悬浮窗权限！", Toast.LENGTH_SHORT).show();
+            Intent intent = new  Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            }
+        }
 
     }
 
     protected void readConfig(){
-        SharedPreferences pref= getSharedPreferences("config",0);
         ((Switch)findViewById(R.id.enable_msg)).setChecked(pref.getBoolean("enable_msg",false));
         ((Switch)findViewById(R.id.enable_jump)).setChecked(pref.getBoolean("enable_jump",false));
         ((EditText)findViewById(R.id.ssid)).setText(pref.getString("ssid","UQ"));
@@ -97,7 +114,6 @@ public class MainActivity extends Activity {
     }
 
     public void saveConfig(View view) {
-        SharedPreferences pref = getSharedPreferences("config", 0);
         SharedPreferences.Editor editor = pref.edit();
         editor.putBoolean("enable_msg", ((Switch)findViewById(R.id.enable_msg)).isChecked());
         editor.putBoolean("enable_jump", ((Switch)findViewById(R.id.enable_jump)).isChecked());

@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
-            android:text="启用一键跳转" />
+            android:text="启用一键跳转（优先于通知）" />
 
         <Switch
             android:id="@+id/enable_assist"

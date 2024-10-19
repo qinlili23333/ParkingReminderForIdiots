@@ -84,6 +84,7 @@ public class DaemonService extends Service {
                                 .setContentIntent(PendingIntent.getActivity(myContext, 0, getPackageManager().getLaunchIntentForPackage(target_app), PendingIntent.FLAG_IMMUTABLE))
                                 .setSmallIcon(R.drawable.noti_icon);
                         Notification noti = builder.build();
+                        noti.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
 
                         NotificationManager notificationManager = getSystemService(NotificationManager.class);
                         notificationManager.notify(2, noti);

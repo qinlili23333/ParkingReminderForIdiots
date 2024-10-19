@@ -10,9 +10,6 @@ import android.net.*;
 import android.net.wifi.WifiInfo;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class DaemonService extends Service {
 

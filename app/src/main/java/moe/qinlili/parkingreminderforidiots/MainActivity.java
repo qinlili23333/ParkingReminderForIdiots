@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
         checkLocationPermission();
         refreshBatteryWhitelist();
         refreshSSID(null);
-
+        setService();
     }
     @Override
     public void onResume()
@@ -104,6 +104,7 @@ public class MainActivity extends Activity {
         editor.putInt("cool_cd", ((RadioGroup) findViewById(R.id.cool_cd)).getCheckedRadioButtonId());
         editor.apply();
         Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
+        setService();
     }
 
     @SuppressLint("BatteryLife")
@@ -152,6 +153,25 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             Toast.makeText(this, "打开失败！", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void setService(){
+        checkLocationPermission();
+        if(((Switch)findViewById(R.id.enable_msg)).isChecked()||((Switch)findViewById(R.id.enable_jump)).isChecked()){
+            startService();
+        }else{
+            stopService();
+        }
+    }
+    private void startService(){
+        Context context = getApplicationContext();
+        Intent intent = new Intent(this, DaemonService.class);
+        context.startForegroundService(intent);
+    }
+
+    private void stopService(){
+        Intent intent = new Intent(this, DaemonService.class);
+        stopService(intent);
     }
 
 }

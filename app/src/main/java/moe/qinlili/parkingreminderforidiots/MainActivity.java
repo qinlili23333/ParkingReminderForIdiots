@@ -1,5 +1,7 @@
 package moe.qinlili.parkingreminderforidiots;
 
+import static android.net.ConnectivityManager.NetworkCallback.FLAG_INCLUDE_LOCATION_INFO;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.*;
@@ -125,12 +127,29 @@ public class MainActivity extends Activity {
     }
 
     public void refreshSSID(View view){
-        WifiManager wifiMgr = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if(wifiMgr != null) {
-            ssid = wifiMgr.getConnectionInfo().getSSID();
-            ssid=ssid.substring(1,ssid.length()-1);
-            ((TextView) findViewById(R.id.current_ssid)).setText("当前SSID：" + ssid);
-        }
+        final NetworkRequest request =
+                new NetworkRequest.Builder()
+                        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                        .build();
+        final ConnectivityManager connectivityManager =
+                getSystemService(ConnectivityManager.class);
+        final ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+            @Override
+            public void onAvailable(Network network) {}
+
+            @Override
+            public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
+                WifiInfo wifiInfo = (WifiInfo) networkCapabilities.getTransportInfo();
+                if(wifiInfo==null){
+                    return;
+                }
+                ssid = wifiInfo.getSSID();
+                ssid=ssid.substring(1,ssid.length()-1);
+                ((TextView) findViewById(R.id.current_ssid)).setText("当前SSID：" + ssid);
+            }
+            // etc.
+        };
+        connectivityManager.requestNetwork(request, networkCallback); // For request
     }
 
     public void setSSID(View view){
@@ -156,11 +175,10 @@ public class MainActivity extends Activity {
     }
 
     private void setService(){
+        stopService();
         checkLocationPermission();
         if(((Switch)findViewById(R.id.enable_msg)).isChecked()||((Switch)findViewById(R.id.enable_jump)).isChecked()){
             startService();
-        }else{
-            stopService();
         }
     }
     private void startService(){

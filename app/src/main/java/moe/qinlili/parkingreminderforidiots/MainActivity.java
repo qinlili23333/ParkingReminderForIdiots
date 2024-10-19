@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.*;
 import android.net.wifi.*;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -63,7 +64,9 @@ public class MainActivity extends Activity {
     {
         super.onResume();
         refreshBatteryWhitelist();
+        checkLocationPermission();
     }
+
 
     private void checkLocationPermission(){
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -75,7 +78,10 @@ public class MainActivity extends Activity {
                 requestPermissions(new String[]{android.Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 1);
             }
         }
-
+        if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "请允许通知权限！", Toast.LENGTH_SHORT).show();
+            requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 2);
+        }
 
     }
 
@@ -128,6 +134,24 @@ public class MainActivity extends Activity {
 
     public void setSSID(View view){
         ((EditText)findViewById(R.id.ssid)).setText(ssid);
+    }
+
+    public void testOpen(View view){
+        String pkgname = ((EditText) findViewById(R.id.pkgname)).getText().toString();
+        if (pkgname.isEmpty() || !pkgname.contains(".")) {
+            Toast.makeText(this, "包名格式错误！", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            Intent intent = getPackageManager().getLaunchIntentForPackage(pkgname);
+            if (intent == null) {
+                Toast.makeText(this, "应用不存在！", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "打开失败！", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }

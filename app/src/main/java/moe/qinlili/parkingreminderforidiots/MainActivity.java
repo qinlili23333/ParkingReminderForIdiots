@@ -195,6 +195,15 @@ public class MainActivity extends Activity {
         checkLocationPermission();
         if(((Switch)findViewById(R.id.enable_msg)).isChecked()||((Switch)findViewById(R.id.enable_jump)).isChecked()){
             startService();
+            PackageManager pm  = getPackageManager();
+            ComponentName componentName = new ComponentName(this, BootReceiver.class);
+            pm.setComponentEnabledSetting(componentName,PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    PackageManager.DONT_KILL_APP);
+        }else{
+            PackageManager pm  = getPackageManager();
+            ComponentName componentName = new ComponentName(this, BootReceiver.class);
+            pm.setComponentEnabledSetting(componentName,PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP);
         }
     }
     private void startService(){

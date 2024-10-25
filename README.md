@@ -1,6 +1,10 @@
 # ParkingReminderForIdiots
  傻逼，别忘记付停车费！（我是傻逼）
 
+## 你现在可通过Google Play安装！
+加入群组https://groups.google.com/g/qinlili_beta/  
+然后点击此链接参与测试https://play.google.com/store/apps/details?id=moe.qinlili.parkingreminderforidiots  
+
 ## 项目介绍
 本项目通过前台服务检测WIFI，当WIFI名称与预设相匹配时，发出通知或直接启动指定的APP  
 本项目默认设置为检测UQ的WIFI，并启动CellOPark 

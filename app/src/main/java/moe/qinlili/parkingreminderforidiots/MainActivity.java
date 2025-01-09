@@ -18,6 +18,8 @@ import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -82,37 +84,60 @@ public class MainActivity extends Activity {
         isRunning = false;
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.privacy_menu) {
+            showPrivacy();
+            return true;
+        }
+        if (id==R.id.source_menu){
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/qinlili23333/ParkingReminderForIdiots"));
+            this.startActivity(intent);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showPrivacy(){
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("隐私说明");
+
+        View view = LayoutInflater.from(this).inflate(R.layout.webview_dialog, null);
+
+        WebView wv = view.findViewById(R.id.webview_dialog);
+        wv.getSettings().setUseWideViewPort(false);
+        wv.getSettings().setAlgorithmicDarkeningAllowed(true);
+        wv.loadUrl("file:///android_asset/privacy.html");
+        alert.setView(view);
+        alert.setPositiveButton("同意", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putBoolean("agree_privacy", true);
+                editor.apply();
+                Toast.makeText(MainActivity.this, "已同意隐私政策，请继续按照提示允许权限", Toast.LENGTH_SHORT).show();
+                checkLocationPermission();
+            }
+        });
+        alert.setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        });
+        alert.show();
+    }
     public void checkLocationPermission(){
         if(!pref.getBoolean("agree_privacy",false))
         {
-            AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.setTitle("隐私说明");
-
-            View view = LayoutInflater.from(this).inflate(R.layout.webview_dialog, null);
-
-            WebView wv = view.findViewById(R.id.webview_dialog);
-            wv.getSettings().setUseWideViewPort(false);
-            wv.getSettings().setAlgorithmicDarkeningAllowed(true);
-            wv.loadUrl("file:///android_asset/privacy.html");
-            alert.setView(view);
-            alert.setPositiveButton("同意", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int id) {
-                    dialog.dismiss();
-                    SharedPreferences.Editor editor = pref.edit();
-                    editor.putBoolean("agree_privacy", true);
-                    editor.apply();
-                    Toast.makeText(MainActivity.this, "已同意隐私政策，请继续按照提示允许权限", Toast.LENGTH_SHORT).show();
-                    checkLocationPermission();
-                }
-            });
-            alert.setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int id) {
-                    android.os.Process.killProcess(android.os.Process.myPid());
-                }
-            });
-            alert.show();
+            showPrivacy();
             return;
         }
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

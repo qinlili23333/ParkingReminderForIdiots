@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
     private void showPrivacy(){
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("隐私说明");
-
+        alert.setCancelable(false);
         View view = LayoutInflater.from(this).inflate(R.layout.webview_dialog, null);
 
         WebView wv = view.findViewById(R.id.webview_dialog);

@@ -1,0 +1,63 @@
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <style>
+        * {
+            word-wrap:break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <H1>隐私协议</H1>
+    <p>本隐私协议针对Parking Reminder For Idiots，最后更新于09 Jan 2025</p>
+    <P>请在使用前认真阅读本协议，同意后方可启用功能。</P>
+
+    <br>
+    <H2>使用的外部SDK</H2>
+    <p>无外部SDK依赖。</p>
+    <H2>收集的数据</H2>
+    <p>本产品收集设备当前的网络类型，若网络类型为WiFi则进一步收集当前SSID。</p>
+    <H2>数据的用途</H2>
+    <p>收集网络信息仅用于判断是否所处用户设置的目标停车区域。数据全程在本地处理，不会以任意方式对外传输。（本应用没有网络权限）</p>
+    <H2>数据的存储</H2>
+    <p>本产品数据随用随取，用完即丢，不会以任何方式存储收集的数据。（本应用唯一存储在本地的内容是用户自行设置的配置文件）</p>
+    <H2>数据的分享</H2>
+    <p>本产品不会以任何方式分享收集的数据。</p>
+    <H2>数据的销毁</H2>
+    <p>本产品无法以任何方式销毁收集的数据，因为本产品根本不会存储数据。</p>
+    <H2>撤销同意</H2>
+    <p>你可以随时撤回权限或卸载本产品，即可安全的撤销同意。</p>
+    <H2>我该怎么相信你说的都是真的？</H2>
+    <p>本产品是<a href="https://github.com/qinlili23333/ParkingReminderForIdiots">开源的</a>，你可以查看源代码，发布版本100%源自开放的源代码。</p>
+    <H2>联系我们</H2>
+    <p>请在开源项目仓库里创建Issue。</p>
+    <br>
+    <H2>权限说明</H2>
+    <p>此处列举了本应用所需的所有权限以及其对应的功能（和源代码中对应的方法）。</p>
+    <H3>android.permission.QUERY_ALL_PACKAGES</H3>
+    <p>用于在用户设置APP包名后验证该APP是否存在并读取图标。（MainActivity.java->afterTextChanged）</p>
+    <H3>android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</H3>
+    <p>用于请求忽略电池优化，以保证定时提醒的准确性。该权限主要针对部分系统杀后台的问题。在关闭检测服务的情况下本应用不会在后台保留任何进程。（MainActivity.java->checkLocationPermission）</p>
+    <H3>android.permission.ACCESS_WIFI_STATE</H3>
+    <H3>android.permission.CHANGE_WIFI_STATE</H3>
+    <H3>android.permission.ACCESS_NETWORK_STATE</H3>
+    <H3>android.permission.CHANGE_NETWORK_STATE"</H3>
+    <H3>android.permission.ACCESS_COARSE_LOCATION</H3>
+    <H3>android.permission.ACCESS_FINE_LOCATION</H3>
+    <H3>android.permission.ACCESS_BACKGROUND_LOCATION</H3>
+    <p>一组用于在后台从位置信息中读取网络状态的权限，虽然我搞不明白为什么要设计成这么多权限就为了读个网络状态，但只能这么留着。（DaemonService.java->listenNetwork）</p>
+    <H3>android.permission.POST_NOTIFICATIONS</H3>
+    <H3>android.permission.FOREGROUND_SERVICE</H3>
+    <H3>android.permission.FOREGROUND_SERVICE_LOCATION</H3>
+    <p>用于启动带有通知的前台服务，只有前台服务能保证网络切换时第一时间检测到。（DaemonService.java->onStartCommand）</p>
+    <H3>android.permission.SYSTEM_ALERT_WINDOW</H3>
+    <p>用于当自动跳转开启时检测到网络符合要求自动跳转指定APP。（DaemonService.java->onCapabilitiesChanged）</p>
+    <H3>android.permission.RECEIVE_BOOT_COMPLETED</H3>
+    <p>用于在开机后自动恢复服务运行状态。（bootReceiver.java->onReceive）</p>
+</body>
+
+</html>

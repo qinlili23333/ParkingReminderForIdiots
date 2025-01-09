@@ -4,6 +4,7 @@ import static android.net.ConnectivityManager.NetworkCallback.FLAG_INCLUDE_LOCAT
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.*;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -16,7 +17,10 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.*;
 
 
@@ -61,9 +65,6 @@ public class MainActivity extends Activity {
             }
         });
         readConfig();
-        checkLocationPermission();
-        refreshBatteryWhitelist();
-        refreshSSID(null);
         setService();
     }
     @Override
@@ -73,6 +74,7 @@ public class MainActivity extends Activity {
         isRunning = true;
         refreshBatteryWhitelist();
         checkLocationPermission();
+        refreshSSID(null);
     }
     @Override
     protected void onPause() {
@@ -80,7 +82,39 @@ public class MainActivity extends Activity {
         isRunning = false;
     }
 
-    private void checkLocationPermission(){
+    public void checkLocationPermission(){
+        if(!pref.getBoolean("agree_privacy",false))
+        {
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+            alert.setTitle("隐私说明");
+
+            View view = LayoutInflater.from(this).inflate(R.layout.webview_dialog, null);
+
+            WebView wv = view.findViewById(R.id.webview_dialog);
+            wv.getSettings().setUseWideViewPort(false);
+            wv.getSettings().setAlgorithmicDarkeningAllowed(true);
+            wv.loadUrl("file:///android_asset/privacy.html");
+            alert.setView(view);
+            alert.setPositiveButton("同意", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.dismiss();
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putBoolean("agree_privacy", true);
+                    editor.apply();
+                    Toast.makeText(MainActivity.this, "已同意隐私政策，请继续按照提示允许权限", Toast.LENGTH_SHORT).show();
+                    checkLocationPermission();
+                }
+            });
+            alert.setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int id) {
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                }
+            });
+            alert.show();
+            return;
+        }
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "请允许位置权限！", Toast.LENGTH_SHORT).show();
             requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
@@ -142,7 +176,10 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void refreshSSID(View view){
+    public void refreshSSID(View view) {
+        if (!pref.getBoolean("agree_privacy", false)){
+            return;
+        }
         final NetworkRequest request =
                 new NetworkRequest.Builder()
                         .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
@@ -192,8 +229,8 @@ public class MainActivity extends Activity {
 
     private void setService(){
         stopService();
-        checkLocationPermission();
         if(((Switch)findViewById(R.id.enable_msg)).isChecked()||((Switch)findViewById(R.id.enable_jump)).isChecked()){
+            checkLocationPermission();
             startService();
             PackageManager pm  = getPackageManager();
             ComponentName componentName = new ComponentName(this, BootReceiver.class);

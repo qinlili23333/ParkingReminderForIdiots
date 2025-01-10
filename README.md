@@ -1,9 +1,9 @@
 # ParkingReminderForIdiots
  傻逼，别忘记付停车费！（我是傻逼）
 
-## 你现在可通过Google Play安装！
-加入群组https://groups.google.com/g/qinlili_beta/  
-然后点击此链接参与测试https://play.google.com/store/apps/details?id=moe.qinlili.parkingreminderforidiots  
+## 谷歌你妈死了
+傻逼谷歌觉得QUERY_ALL_PACKAGES不是必要权限，我倒是想问问不用这个权限怎么实现用户自定义包名并跳转？谷歌你要是答不出来你妈今晚就暴毙  
+![谷歌死妈](googlewcsndm.jpg)  
 
 ## 项目介绍
 本项目通过前台服务检测WIFI，当WIFI名称与预设相匹配时，发出通知或直接启动指定的APP  

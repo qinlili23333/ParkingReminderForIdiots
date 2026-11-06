@@ -5,9 +5,11 @@ import static android.net.ConnectivityManager.NetworkCallback.FLAG_INCLUDE_LOCAT
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.*;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.net.*;
 import android.net.wifi.*;
@@ -24,6 +26,10 @@ import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 public class MainActivity extends Activity {
@@ -168,7 +174,7 @@ public class MainActivity extends Activity {
         ((Switch)findViewById(R.id.enable_msg)).setChecked(pref.getBoolean("enable_msg",false));
         ((Switch)findViewById(R.id.enable_jump)).setChecked(pref.getBoolean("enable_jump",false));
         ((EditText)findViewById(R.id.ssid)).setText(pref.getString("ssid","UQ"));
-        ((EditText)findViewById(R.id.pkgname)).setText(pref.getString("pkgname","air.com.cellopark.au"));
+        ((EditText)findViewById(R.id.pkgname)).setText(pref.getString("pkgname",""));
         ((RadioGroup)findViewById(R.id.cool_cd)).check(pref.getInt("cool_cd",R.id.cd_day));
     }
 
@@ -279,4 +285,42 @@ public class MainActivity extends Activity {
         stopService(intent);
     }
 
+    public void selectApp(View view) {
+        PackageManager pm = getPackageManager();
+
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> resolveInfos = pm.queryIntentActivities(mainIntent, 0);
+
+        Collections.sort(resolveInfos, new ResolveInfo.DisplayNameComparator(pm));
+
+        List<String> appNames = new ArrayList<>();
+        final List<String> packageNames = new ArrayList<>();
+
+        String currentPkg = getPackageName();
+
+        for (ResolveInfo info : resolveInfos) {
+            String packageName = info.activityInfo.packageName;
+
+            if (packageName.equals(currentPkg)) {
+                continue;
+            }
+
+            String appName = info.loadLabel(pm).toString();
+
+            appNames.add(appName);
+            packageNames.add(packageName);
+        }
+
+        CharSequence[] items = appNames.toArray(new CharSequence[0]);
+
+        new AlertDialog.Builder(this)
+                .setTitle("请选择触发时启动的 App喵")
+                .setItems(items, (dialog, which) -> {
+                    String selectedPackage = packageNames.get(which);
+                    ((EditText) findViewById(R.id.pkgname)).setText(selectedPackage);
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
 }

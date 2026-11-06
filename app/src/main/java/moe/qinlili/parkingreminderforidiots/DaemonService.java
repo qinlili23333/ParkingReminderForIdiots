@@ -43,7 +43,7 @@ public class DaemonService extends Service {
                 .setSmallIcon(R.drawable.noti_icon);
         notification = builder.build();
         target_ssid=pref.getString("ssid","UQ");
-        target_app=pref.getString("pkgname","air.com.cellopark.au");
+        target_app=pref.getString("pkgname","");
         listenNetwork();
         startForeground(1, notification);
         return super.onStartCommand(intent, flags, startId);

@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'moe.qinlili.parkingreminderforidiots'
-    compileSdk 35
+    compileSdk 37
 
     defaultConfig {
         applicationId "moe.qinlili.parkingreminderforidiots"
         minSdk 34
-        targetSdk 35
+        targetSdk 37
         versionCode 3
         versionName "1.2"
 
@@ -24,8 +24,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_14
-        targetCompatibility JavaVersion.VERSION_15
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 

@@ -20,7 +20,8 @@ public class DaemonService extends Service {
     static String CHANNEL_MSG = "ReminderMsg";
     String target_ssid;
     String target_app;
-    String current_ssid;
+    String current_ssid = "";
+    Boolean reverse_mode;
     Notification notification;
     SharedPreferences pref;
 
@@ -44,6 +45,7 @@ public class DaemonService extends Service {
         notification = builder.build();
         target_ssid=pref.getString("ssid","UQ");
         target_app=pref.getString("pkgname","");
+        reverse_mode=pref.getBoolean("enable_reverse",false);
         listenNetwork();
         startForeground(1, notification);
         return super.onStartCommand(intent, flags, startId);
@@ -63,7 +65,30 @@ public class DaemonService extends Service {
         NetworkRequest.Builder builder = new NetworkRequest.Builder()
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        Network network = connectivityManager.getActiveNetwork();
+        if (network != null) {
+            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+            if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                // 获取 TransportInfo 并确保其为 WifiInfo 类型
+                WifiInfo wifiInfo = (WifiInfo) capabilities.getTransportInfo();
+                current_ssid = wifiInfo.getSSID();
+            }
+        }
         connectivityManager.requestNetwork(builder.build(), new ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+
+            @Override
+            public void onLost(Network network) {
+                Log.i("PRFI","WiFI已断开");
+                String currentDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
+                if(pref.getString("last_date", "").equals(currentDate)){
+                    Log.i("PRFI","今日已提醒过");
+                    return;
+                }
+                if(reverse_mode && current_ssid.equals(target_ssid)){
+                    Trigger();
+                }
+                current_ssid="";
+            }
 
             @Override
             public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
@@ -73,55 +98,60 @@ public class DaemonService extends Service {
                 }
                 String ssid = wifiInfo.getSSID();
                 ssid=ssid.substring(1,ssid.length()-1);
-                Log.i("PRFI","当前SSID：" + ssid);
-                if(current_ssid!=null && current_ssid.equals(ssid)){
+                Log.i("PRFI","当前SSID：" + ssid + "上一个SSID：" + current_ssid);
+                if(current_ssid.equals(ssid)){
                     return;
                 }
-                current_ssid=ssid;
                 String currentDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
                 if(pref.getString("last_date", "").equals(currentDate)){
                     Log.i("PRFI","今日已提醒过");
+                    current_ssid=ssid;
                     return;
                 }
-                if(ssid.equals(target_ssid)){
+                if((ssid.equals(target_ssid) && !reverse_mode) || (reverse_mode && current_ssid.equals(target_ssid))){
                     Log.i("PRFI","已连接到目标SSID");
-                    if(pref.getBoolean("enable_jump",false)&&!MainActivity.isRunning) {
-                        try {
-                            Intent intent = getPackageManager().getLaunchIntentForPackage(target_app);
-                            startActivity(intent);
-                            pref.edit().putString("last_date", currentDate).apply();
-                            refreshNotificationDate();
-                        } catch (Exception e) {
-                            Notification.Builder builder = new Notification.Builder(myContext, CHANNEL_MSG)
-                                .setContentTitle("跳转停车付费APP失败")
-                                .setContentText("点击此处修改设置")
-                                .setContentIntent(PendingIntent.getActivity(myContext, 0, new Intent(myContext, MainActivity.class), PendingIntent.FLAG_IMMUTABLE))
-                                .setSmallIcon(R.drawable.noti_icon);
-                            Notification noti = builder.build();
-                            noti.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
-                            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-                            notificationManager.notify(2, noti);
-                        }
-                    }else if(pref.getBoolean("enable_msg",false)){
-                        Intent intent=new Intent(myContext, JumpActivity.class);
-                        Notification.Builder builder = new Notification.Builder(myContext, CHANNEL_MSG)
-                                .setContentTitle("你已到达目标停车场")
-                                .setContentText("点击此处立即缴费")
-                                .setContentIntent(PendingIntent.getActivity(myContext, 0, intent, PendingIntent.FLAG_IMMUTABLE))
-                                .setSmallIcon(R.drawable.noti_icon);
-                        Notification noti = builder.build();
-                        noti.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
-
-                        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-                        notificationManager.notify(2, noti);
-                    }
-
+                    Trigger();
                 }else{
                     Log.i("PRFI","未连接到目标SSID");
                     if(pref.getBoolean("enable_msg",false)){
                         NotificationManager notificationManager = getSystemService(NotificationManager.class);
                         notificationManager.cancel(2);
                     }
+                }
+                current_ssid=ssid;
+            }
+
+            private void Trigger() {
+                if(pref.getBoolean("enable_jump",false)&&!MainActivity.isRunning) {
+                    try {
+                        Intent intent = getPackageManager().getLaunchIntentForPackage(target_app);
+                        startActivity(intent);
+                        String currentDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
+                        pref.edit().putString("last_date", currentDate).apply();
+                        refreshNotificationDate();
+                    } catch (Exception e) {
+                        Notification.Builder builder = new Notification.Builder(myContext, CHANNEL_MSG)
+                                .setContentTitle("跳转停车付费APP失败")
+                                .setContentText("点击此处修改设置")
+                                .setContentIntent(PendingIntent.getActivity(myContext, 0, new Intent(myContext, MainActivity.class), PendingIntent.FLAG_IMMUTABLE))
+                                .setSmallIcon(R.drawable.noti_icon);
+                        Notification noti = builder.build();
+                        noti.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
+                        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+                        notificationManager.notify(2, noti);
+                    }
+                }else if(pref.getBoolean("enable_msg",false)){
+                    Intent intent=new Intent(myContext, JumpActivity.class);
+                    Notification.Builder builder = new Notification.Builder(myContext, CHANNEL_MSG)
+                            .setContentTitle("你已到达目标停车场")
+                            .setContentText("点击此处立即缴费")
+                            .setContentIntent(PendingIntent.getActivity(myContext, 0, intent, PendingIntent.FLAG_IMMUTABLE))
+                            .setSmallIcon(R.drawable.noti_icon);
+                    Notification noti = builder.build();
+                    noti.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
+
+                    NotificationManager notificationManager = getSystemService(NotificationManager.class);
+                    notificationManager.notify(2, noti);
                 }
             }
 

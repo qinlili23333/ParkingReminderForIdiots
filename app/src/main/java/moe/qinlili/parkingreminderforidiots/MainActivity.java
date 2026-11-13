@@ -80,7 +80,6 @@ public class MainActivity extends Activity {
             }
         });
         readConfig();
-        setService();
     }
     @Override
     public void onResume()
@@ -88,10 +87,12 @@ public class MainActivity extends Activity {
         super.onResume();
         isRunning = true;
         if(inPermission){
-            checkLocationPermission();
+            if(checkLocationPermission()){
+                inPermission = false;
+                setService();
+            }
         }
         refreshBatteryWhitelist();
-        refreshSSID(null);
     }
     @Override
     protected void onPause() {
@@ -174,13 +175,13 @@ public class MainActivity extends Activity {
             }
             return false;
         }
-        inPermission = false;
         return true;
     }
 
     protected void readConfig(){
         ((Switch)findViewById(R.id.enable_msg)).setChecked(pref.getBoolean("enable_msg",false));
         ((Switch)findViewById(R.id.enable_jump)).setChecked(pref.getBoolean("enable_jump",false));
+        ((Switch)findViewById(R.id.enable_reverse)).setChecked(pref.getBoolean("enable_reverse",false));
         ((EditText)findViewById(R.id.ssid)).setText(pref.getString("ssid","UQ"));
         ((EditText)findViewById(R.id.pkgname)).setText(pref.getString("pkgname",""));
         ((RadioGroup)findViewById(R.id.cool_cd)).check(pref.getInt("cool_cd",R.id.cd_day));
@@ -190,6 +191,7 @@ public class MainActivity extends Activity {
         SharedPreferences.Editor editor = pref.edit();
         editor.putBoolean("enable_msg", ((Switch)findViewById(R.id.enable_msg)).isChecked());
         editor.putBoolean("enable_jump", ((Switch)findViewById(R.id.enable_jump)).isChecked());
+        editor.putBoolean("enable_reverse",((Switch)findViewById(R.id.enable_reverse)).isChecked());
         editor.putString("ssid", ((EditText) findViewById(R.id.ssid)).getText().toString());
         editor.putString("pkgname", ((EditText) findViewById(R.id.pkgname)).getText().toString());
         editor.putInt("cool_cd", ((RadioGroup) findViewById(R.id.cool_cd)).getCheckedRadioButtonId());
@@ -216,7 +218,9 @@ public class MainActivity extends Activity {
     }
 
     public void refreshSSID(View view) {
-        if (!pref.getBoolean("agree_privacy", false)){
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "请允许位置权限！", Toast.LENGTH_SHORT).show();
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             return;
         }
         final NetworkRequest request =
@@ -237,7 +241,13 @@ public class MainActivity extends Activity {
                 }
                 ssid = wifiInfo.getSSID();
                 ssid=ssid.substring(1,ssid.length()-1);
-                ((TextView) findViewById(R.id.current_ssid)).setText("当前SSID：" + ssid);
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        ((TextView) findViewById(R.id.current_ssid)).setText("当前SSID：" + ssid);
+                    }
+                });
             }
             // etc.
         };
@@ -286,7 +296,10 @@ public class MainActivity extends Activity {
     private void startService(){
         Context context = getApplicationContext();
         Intent intent = new Intent(this, DaemonService.class);
-        context.startForegroundService(intent);
+        try {
+            context.startForegroundService(intent);
+        } catch (Exception e) {
+        }
     }
 
     private void stopService(){
@@ -330,6 +343,14 @@ public class MainActivity extends Activity {
                     ((EditText) findViewById(R.id.pkgname)).setText(selectedPackage);
                 })
                 .setNegativeButton("取消", null)
+                .show();
+    }
+
+    public void showReverseHelp(View view) {
+        new AlertDialog.Builder(this)
+                .setTitle("反向检测说明")
+                .setMessage("有时候我们的目的地没有WiFi，怎么办呢？欸我们可以把网络设置成Android Auto的车机热点并打开反向检测，这样当手机与Android Auto失去连接时就可以检测到了！")
+                .setPositiveButton("确定", null)
                 .show();
     }
 }

@@ -35,6 +35,8 @@ import java.util.List;
 public class MainActivity extends Activity {
 
     static boolean isRunning = false;
+
+    boolean inPermission = false;
     String ssid;
 
     SharedPreferences pref;
@@ -45,6 +47,11 @@ public class MainActivity extends Activity {
         isRunning = true;
         setContentView(R.layout.activity_main);
         pref = getSharedPreferences("config", 0);
+        if(!pref.getBoolean("agree_privacy",false))
+        {
+            showPrivacy();
+            return;
+        }
         ((EditText)findViewById(R.id.pkgname)).addTextChangedListener(new TextWatcher() {
 
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -80,8 +87,10 @@ public class MainActivity extends Activity {
     {
         super.onResume();
         isRunning = true;
+        if(inPermission){
+            checkLocationPermission();
+        }
         refreshBatteryWhitelist();
-        checkLocationPermission();
         refreshSSID(null);
     }
     @Override
@@ -128,8 +137,6 @@ public class MainActivity extends Activity {
                 SharedPreferences.Editor editor = pref.edit();
                 editor.putBoolean("agree_privacy", true);
                 editor.apply();
-                Toast.makeText(MainActivity.this, "已同意隐私政策，请继续按照提示允许权限", Toast.LENGTH_SHORT).show();
-                checkLocationPermission();
             }
         });
         alert.setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
@@ -140,24 +147,23 @@ public class MainActivity extends Activity {
         });
         alert.show();
     }
-    public void checkLocationPermission(){
-        if(!pref.getBoolean("agree_privacy",false))
-        {
-            showPrivacy();
-            return;
-        }
+    public boolean checkLocationPermission(){
+        inPermission = true;
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "请允许位置权限！", Toast.LENGTH_SHORT).show();
             requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return false;
         }else{
             if(checkSelfPermission(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED){
                 Toast.makeText(this, "请允许后台位置！", Toast.LENGTH_SHORT).show();
                 requestPermissions(new String[]{android.Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 1);
+                return false;
             }
         }
         if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "请允许通知权限！", Toast.LENGTH_SHORT).show();
             requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 2);
+            return false;
         }
         if (!Settings.canDrawOverlays(this)&&pref.getBoolean("enable_jump",false)) {
             Toast.makeText(this, "自动跳转需要悬浮窗权限！", Toast.LENGTH_SHORT).show();
@@ -166,8 +172,10 @@ public class MainActivity extends Activity {
             if (intent.resolveActivity(getPackageManager()) != null) {
                 startActivity(intent);
             }
+            return false;
         }
-
+        inPermission = false;
+        return true;
     }
 
     protected void readConfig(){
@@ -261,8 +269,9 @@ public class MainActivity extends Activity {
     private void setService(){
         stopService();
         if(((Switch)findViewById(R.id.enable_msg)).isChecked()||((Switch)findViewById(R.id.enable_jump)).isChecked()){
-            checkLocationPermission();
-            startService();
+            if(checkLocationPermission()){
+                startService();
+            }
             PackageManager pm  = getPackageManager();
             ComponentName componentName = new ComponentName(this, BootReceiver.class);
             pm.setComponentEnabledSetting(componentName,PackageManager.COMPONENT_ENABLED_STATE_ENABLED,

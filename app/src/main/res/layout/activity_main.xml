@@ -185,6 +185,13 @@
                 android:text="1小时" />
         </RadioGroup>
 
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="保存并启用检测服务后将在后台持续读取当前连接的网络实现定位，最近2个连接的网络会暂时存储于内存用于比较"
+            android:textColor="#FF0000" />
+
         <Button
             android:id="@+id/apply"
             android:layout_width="match_parent"

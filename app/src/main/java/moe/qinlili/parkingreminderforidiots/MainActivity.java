@@ -50,7 +50,6 @@ public class MainActivity extends Activity {
         if(!pref.getBoolean("agree_privacy",false))
         {
             showPrivacy();
-            return;
         }
         ((EditText)findViewById(R.id.pkgname)).addTextChangedListener(new TextWatcher() {
 
